@@ -1,0 +1,216 @@
+import java.util.Scanner;
+import java.util.Random;
+
+class Baseball {
+    static Scanner scan = new Scanner(System.in);
+    static int ab = 0;
+    static int hits = 0;
+    static int homers = 0;
+    static int rbi = 0;
+    static double ba = 0;
+    static double obp = 0;
+    static double slg = 0;
+    static double ops = 0;
+    static int walks = 0;
+    static int sb = 0;
+    static int doubles = 0;
+    static int triples = 0;
+    static int projectedHomers = 0;
+    static int projectedRBI = 0;
+    static String name;
+
+    public static void main(String[] args) {
+        System.out.println("Who is the batter?");
+        name = scan.nextLine();
+
+        System.out.println("How many At Bats do they have this year?");
+        ab = scan.nextInt();
+
+        System.out.println("How many Hits do they have this year?");
+        hits = scan.nextInt();
+
+        System.out.println("How many home runs?");
+        homers = scan.nextInt();
+
+        System.out.println("How many triples?");
+        triples = scan.nextInt();
+
+        System.out.println("How many doubles?");
+        doubles = scan.nextInt();
+
+        System.out.println("How many walks?");
+        walks = scan.nextInt();
+
+        System.out.println("How many stolen bases?");
+        sb = scan.nextInt();
+
+        System.out.println("How many RBIs?");
+        rbi = scan.nextInt();
+
+        calculateStats();
+        System.out.println(toStringStats());
+        projectedStats();
+        nextAtBatOdds();
+        simulateAtBat();    
+        compareToMLB();
+    }
+
+    public static void calculateStats() {
+        if (ab > 0) {
+            ba = (double) hits / ab;
+            slg = ((1.0 * (hits - doubles - triples - homers) + 2.0 * doubles + 3.0 * triples + 4.0 * homers) / ab);
+        }
+
+        if ((ab + walks) > 0) {
+            obp = (double) (hits + walks) / (ab + walks);
+        }
+
+        ops = obp + slg;
+    }
+
+    public static String toStringStats() {
+        return name + " is batting " + String.format("%.3f", ba) +
+                " with " + homers + " homers, " + triples + " triples, " +
+                doubles + " doubles, " + walks + " walks, " +
+                rbi + " RBIs, and " + sb + " stolen bases. " +
+                "Slugging " + String.format("%.3f", slg) +
+                ", OPS: " + String.format("%.3f", ops) +
+                ", OBP: " + String.format("%.3f", obp);
+    }
+
+    public static void projectedStats() {
+        System.out.println("\nHow many games has " + name + " played so far?");
+        int gamesPlayed = scan.nextInt();
+
+        if (gamesPlayed <= 0) {
+            System.out.println("Invalid number of games.");
+            return;
+        }
+
+        double gamesFactor = 162.0 / gamesPlayed;
+
+        int projectedAB = (int) Math.round(ab * gamesFactor);
+        int projectedHits = (int) Math.round(hits * gamesFactor);
+        projectedHomers = (int) Math.round(homers * gamesFactor);
+        int projectedDoubles = (int) Math.round(doubles * gamesFactor);
+        int projectedTriples = (int) Math.round(triples * gamesFactor);
+        int projectedWalks = (int) Math.round(walks * gamesFactor);
+        int projectedSB = (int) Math.round(sb * gamesFactor);
+        projectedRBI = (int) Math.round(rbi * gamesFactor);
+
+        System.out.println("\n--- Projected Stats Over 162 Games ---");
+        System.out.println("Projected At Bats: " + projectedAB);
+        System.out.println("Projected Hits: " + projectedHits);
+        System.out.println("Projected Home Runs: " + projectedHomers);
+        System.out.println("Projected Doubles: " + projectedDoubles);
+        System.out.println("Projected Triples: " + projectedTriples);
+        System.out.println("Projected Walks: " + projectedWalks);
+        System.out.println("Projected Stolen Bases: " + projectedSB);
+        System.out.println("Projected RBIs: " + projectedRBI);
+
+        // Evaluation section
+        double avgBA = 0.250;
+        int avgHR = 20;
+        int avgRBI = 70;
+        double avgOPS = 0.720;
+
+        int statusScore = 0;
+        if (ba > avgBA) statusScore++;
+        if (projectedHomers > avgHR) statusScore++;
+        if (projectedRBI > avgRBI) statusScore++;
+        if (ops > avgOPS) statusScore++;
+
+        String rating;
+        if (statusScore >= 3) {
+            rating = "Above Average MLB Player";
+        } else if (statusScore == 2) {
+            rating = "Average MLB Player";
+        } else {
+            rating = "Below Average MLB Player";
+        }
+
+        System.out.println("\n--- Player Evaluation ---");
+        System.out.println(name + " is classified as an: " + rating);
+    }
+    public static void nextAtBatOdds() {
+    int singles = hits - doubles - triples - homers;
+    int totalOuts = ab - hits;
+
+    if (ab <= 0 || hits < 0 || singles < 0 || totalOuts < 0) {
+        System.out.println("\nNot enough data to compute next at-bat odds.");
+        return;
+    }
+
+    double probHomer = (double) homers / ab;
+    double probTriple = (double) triples / ab;
+    double probDouble = (double) doubles / ab;
+    double probSingle = (double) singles / ab;
+    double probOut = (double) totalOuts / ab;
+
+    System.out.println("\n--- Odds for Next At-Bat Outcome ---");
+    System.out.printf("Single: %.1f%%\n", probSingle * 100);
+    System.out.printf("Double: %.1f%%\n", probDouble * 100);
+    System.out.printf("Triple: %.1f%%\n", probTriple * 100);
+    System.out.printf("Home Run: %.1f%%\n", probHomer * 100);
+    System.out.printf("Out: %.1f%%\n", probOut * 100);
+}
+public static void simulateAtBat() {
+    int singles = hits - doubles - triples - homers;
+    int totalOuts = ab - hits;
+
+    if (ab <= 0 || singles < 0 || totalOuts < 0) {
+        System.out.println("\nNot enough data to simulate an at-bat.");
+        return;
+    }
+
+    // Calculate probabilities
+    double probSingle = (double) singles / ab;
+    double probDouble = (double) doubles / ab;
+    double probTriple = (double) triples / ab;
+    double probHomer = (double) homers / ab;
+    double probOut = (double) totalOuts / ab;
+
+    // Simulate using a random number
+    double roll = new Random().nextDouble();
+
+    String result;
+    if (roll < probSingle) {
+        result = "Single!";
+    } else if (roll < probSingle + probDouble) {
+        result = "Double!";
+    } else if (roll < probSingle + probDouble + probTriple) {
+        result = "Triple!";
+    } else if (roll < probSingle + probDouble + probTriple + probHomer) {
+        result = "Home Run!";
+    } else {
+        result = "Out.";
+    }
+
+    System.out.println("\n--- Simulated At-Bat ---");
+    System.out.println("Result: " + result);
+}
+public static void compareToMLB() {
+    double avgBA = 0.250;
+    double avgOPS = 0.720;
+    int avgHR = 20;
+    int avgRBI = 70;
+
+   
+    double troutBA = 0.291;
+    double troutOPS = 1.083;
+    int troutHR = 45;
+    int troutRBI = 104;
+
+    System.out.println("\n--- Comparison to League Averages ---");
+    System.out.printf("BA: %.3f vs League Avg: %.3f\n", ba, avgBA);
+    System.out.printf("OPS: %.3f vs League Avg: %.3f\n", ops, avgOPS);
+    System.out.println("Projected HR: " + projectedHomers + " vs League Avg: " + avgHR);
+    System.out.println("Projected RBI: " + projectedRBI + " vs League Avg: " + avgRBI);
+
+    System.out.println("\n--- Comparison to Mike Trout (2023) ---");
+    System.out.printf("BA: %.3f vs Trout: %.3f\n", ba, troutBA);
+    System.out.printf("OPS: %.3f vs Trout: %.3f\n", ops, troutOPS);
+    System.out.println("Projected HR: " + projectedHomers + " vs Trout: " + troutHR);
+    System.out.println("Projected RBI: " + projectedRBI + " vs Trout: " + troutRBI);
+}
+}
